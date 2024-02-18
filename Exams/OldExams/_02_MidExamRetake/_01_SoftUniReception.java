@@ -1,6 +1,5 @@
 package Exams.OldExams._02_MidExamRetake;
 
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class _01_SoftUniReception {
