@@ -7,44 +7,35 @@ public class _05_DragonArmy {
         Scanner scanner = new Scanner(System.in);
 
         int count = Integer.parseInt(scanner.nextLine());
-        LinkedHashMap<String, TreeMap<String, String>> dragons = new LinkedHashMap<>();
+        LinkedHashMap<String, TreeMap<String, List<Double>>> dragons = new LinkedHashMap<>();
         for (int i = 0; i < count; i++) {
             String[] stats = scanner.nextLine().split(" ");
             dragons.putIfAbsent(stats[0], new TreeMap<>());
-            dragons.get(stats[0]).put(stats[1],
-                    (stats[2].compareTo("null") == 0 ? "45" : stats[2]) + " " +
-                    (stats[3].compareTo("null") == 0 ? "250" : stats[3]) + " " +
-                    (stats[4].compareTo("null") == 0 ? "10" : stats[4])
-            );
+            Double damage = getParsedOrDefault(stats[2], 45.0);
+            Double health = getParsedOrDefault(stats[3], 250.0);
+            Double armor = getParsedOrDefault(stats[4], 10.0);
+            dragons.get(stats[0]).put(stats[1], new ArrayList() {{
+               add(damage); add(health); add(armor);
+            }});
         }
 
-        LinkedHashMap<String, List<Double>> statsMeans = new LinkedHashMap<>();
-        dragons.forEach((color, dragon) -> {
-            statsMeans.put(color, new ArrayList(){{ add(0.0); add(0.0); add(0.0); }});
-            List<Double> statsMeansByColor = statsMeans.get(color);
-            dragon.forEach((name, stats) -> {
-                int damage = Integer.parseInt(stats.split(" ")[0]);
-                int health = Integer.parseInt(stats.split(" ")[1]);
-                int armor = Integer.parseInt(stats.split(" ")[2]);
-                statsMeansByColor.set(0, statsMeansByColor.get(0) + damage);
-                statsMeansByColor.set(1, statsMeansByColor.get(1) + health);
-                statsMeansByColor.set(2, statsMeansByColor.get(2) + armor);
+        dragons.forEach((key1, value1) -> {
+            System.out.printf("%s::(%.2f/%.2f/%.2f)%n",key1,
+                    value1.values().stream()
+                            .map(doubles -> doubles.get(0)).mapToDouble(Double::doubleValue).average().orElse(0.0),
+                    value1.values().stream()
+                            .map(doubles -> doubles.get(1)).mapToDouble(Double::doubleValue).average().orElse(0.0),
+                    value1.values().stream()
+                            .map(doubles -> doubles.get(2)).mapToDouble(Double::doubleValue).average().orElse(0.0));
+            value1.forEach((key,value) -> {
+                System.out.printf("-%s -> damage: %.0f, health: %.0f, armor: %.0f%n"
+                        , key, value.get(0), value.get(1), value.get(2));
             });
-            statsMeansByColor.set(0, statsMeansByColor.get(0) / dragon.size());
-            statsMeansByColor.set(1, statsMeansByColor.get(1) / dragon.size());
-            statsMeansByColor.set(2, statsMeansByColor.get(2) / dragon.size());
         });
+    }
 
-        dragons.forEach((color, dragon) -> {
-            System.out.printf("%s::(%.2f/%.2f/%.2f)%n", color,
-                    statsMeans.get(color).get(0),
-                    statsMeans.get(color).get(1),
-                    statsMeans.get(color).get(2));
-            dragon.forEach((name, stats) -> {
-                String[] statsTokens = stats.split(" ");
-                System.out.printf("-%s -> damage: %s, health: %s, armor: %s%n",
-                        name, statsTokens[0], statsTokens[1], statsTokens[2]);
-            });
-        });
+    public static Double getParsedOrDefault(String value, Double orDefault) {
+        if (value.equals("null")) return orDefault;
+        else return Double.parseDouble(value);
     }
 }
