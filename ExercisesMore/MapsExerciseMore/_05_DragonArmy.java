@@ -1,63 +1,50 @@
 package ExercisesMore.MapsExerciseMore;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class _05_DragonArmy {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
         int count = Integer.parseInt(scanner.nextLine());
-        LinkedHashMap<String, List<String>> dragons = new LinkedHashMap<>();
-        LinkedHashMap<String, List<Double>> colorMeanStats = new LinkedHashMap<>();
-        LinkedHashMap<String, Integer> colorsCount = new LinkedHashMap<>();
-        TreeMap<String, List<Integer>> dragonStats = new TreeMap<>();
+        LinkedHashMap<String, TreeMap<String, String>> dragons = new LinkedHashMap<>();
         for (int i = 0; i < count; i++) {
-            String[] tokens = scanner.nextLine().split(" ");
-            String color = tokens[0];
-            String name = tokens[1];
-            String key = color + "::" + name;
-            String[] stats = Arrays.asList(
-                    tokens[2].equals("null") ? "45" : tokens[2],
-                    tokens[3].equals("null") ? "250" : tokens[3],
-                    tokens[4].equals("null") ? "10" : tokens[4])
-                .toArray(new String[0]);
-            dragons.putIfAbsent(color, new ArrayList<>());
-            if (dragons.get(color).contains(name)) {
-                dragonStats.put(name,
-                        Arrays.stream(stats).map(Integer::parseInt).collect(Collectors.toList()));
-            } else {
-                dragons.get(color).add(name);
-                dragonStats.putIfAbsent(key,
-                        Arrays.stream(stats).map(Integer::parseInt).collect(Collectors.toList()));
-            }
-            colorsCount.put(color, colorsCount.containsKey(color) ? colorsCount.get(color) + 1 : 1);
-            colorMeanStats.putIfAbsent(color, new ArrayList() {{ add(0.0); add(0.0); add(0.0);}});
-            colorMeanStats.get(color).set(0,
-                    colorMeanStats.get(color).get(0) + (tokens[2].equals("null") ? 45 : Double.parseDouble(tokens[2])));
-            colorMeanStats.get(color).set(1,
-                    colorMeanStats.get(color).get(1) + (tokens[3].equals("null") ? 250 : Double.parseDouble(tokens[3])));
-            colorMeanStats.get(color).set(2,
-                    colorMeanStats.get(color).get(2) + (tokens[4].equals("null") ? 10.0 : Double.parseDouble(tokens[4])));
+            String[] stats = scanner.nextLine().split(" ");
+            dragons.putIfAbsent(stats[0], new TreeMap<>());
+            dragons.get(stats[0]).put(stats[1],
+                    (stats[2].compareTo("null") == 0 ? "45" : stats[2]) + " " +
+                    (stats[3].compareTo("null") == 0 ? "250" : stats[3]) + " " +
+                    (stats[4].compareTo("null") == 0 ? "10" : stats[4])
+            );
         }
 
-        dragons.forEach((key, value) -> value.sort(String::compareTo));
-
-
-        for (Map.Entry<String, List<String>> dragon : dragons.entrySet()) {
-            List<Double> meanStats = colorMeanStats.get(dragon.getKey());
-            Integer colorCount = colorsCount.get(dragon.getKey());
-            for (int i = 0; i < meanStats.size(); i++) {
-                meanStats.set(i, meanStats.get(i) / colorCount);
-            }
-
-            System.out.printf("%s::(%.2f/%.2f/%.2f)%n",
-                    dragon.getKey(), meanStats.get(0), meanStats.get(1), meanStats.get(2));
-            dragon.getValue().forEach(name -> {
-                List<Integer> stats = dragonStats.get(dragon.getKey() + "::" + name);
-                System.out.printf("-%s -> damage: %d, health: %d, armor: %d%n",
-                        name, stats.get(0), stats.get(1), stats.get(2));
+        LinkedHashMap<String, List<Double>> statsMeans = new LinkedHashMap<>();
+        dragons.forEach((color, dragon) -> {
+            statsMeans.put(color, new ArrayList(){{ add(0.0); add(0.0); add(0.0); }});
+            List<Double> statsMeansByColor = statsMeans.get(color);
+            dragon.forEach((name, stats) -> {
+                int damage = Integer.parseInt(stats.split(" ")[0]);
+                int health = Integer.parseInt(stats.split(" ")[1]);
+                int armor = Integer.parseInt(stats.split(" ")[2]);
+                statsMeansByColor.set(0, statsMeansByColor.get(0) + damage);
+                statsMeansByColor.set(1, statsMeansByColor.get(1) + health);
+                statsMeansByColor.set(2, statsMeansByColor.get(2) + armor);
             });
-        }
+            statsMeansByColor.set(0, statsMeansByColor.get(0) / dragon.size());
+            statsMeansByColor.set(1, statsMeansByColor.get(1) / dragon.size());
+            statsMeansByColor.set(2, statsMeansByColor.get(2) / dragon.size());
+        });
+
+        dragons.forEach((color, dragon) -> {
+            System.out.printf("%s::(%.2f/%.2f/%.2f)%n", color,
+                    statsMeans.get(color).get(0),
+                    statsMeans.get(color).get(1),
+                    statsMeans.get(color).get(2));
+            dragon.forEach((name, stats) -> {
+                String[] statsTokens = stats.split(" ");
+                System.out.printf("-%s -> damage: %s, health: %s, armor: %s%n",
+                        name, statsTokens[0], statsTokens[1], statsTokens[2]);
+            });
+        });
     }
 }
